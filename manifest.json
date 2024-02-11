@@ -16,5 +16,11 @@
     "default_icon": "icons/icon-48.png",
     "default_title": "Magnet Muncher: Grab 'em All!",
     "default_popup": "popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "magnet-muncher@fnlsg.in",
+      "strict_min_version": "42.0"
+    }
   }
 }
