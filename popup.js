@@ -1,28 +1,32 @@
 "use strict";
 
-document.getElementById("extract").addEventListener("click", () => {
-  var tabId;
+/**
+ * Adds event listener to extract magnet links when the extract button is clicked.
+ * Retrieves current active tab and injects content script to extract links.
+ */
 
-  return getCurrentTab()
-    .then((items) => {
-      tabId = items[0].id;
+document.getElementById("extract").addEventListener("click", () => {
+  let tabId;
+
+  getCurrentTab()
+    .then((tabs) => {
+      tabId = tabs[0].id;
       return injectScript(tabId);
     })
-    .then((item) => {
+    .then(() => {
       chrome.tabs.sendMessage(tabId, { action: "extract" }, (links) => {
         if (chrome.runtime.lastError) {
           return window.alert(chrome.runtime.lastError);
         }
 
-        const parsedLinks = [...new Set(links)].map((x) => ({
-          name: parseMagnetURI(x),
-          link: x,
+        const parsedLinks = [...new Set(links)].map((link) => ({
+          name: parseMagnetName(link),
+          link: link,
         }));
 
         const listGroup = document.getElementById("parsed-links");
 
         parsedLinks.forEach((link) => {
-          // Create list item
           const listItem = document.createElement("div");
           listItem.classList.add(
             "list-group-item",
@@ -31,12 +35,10 @@ document.getElementById("extract").addEventListener("click", () => {
             "align-items-center"
           );
 
-          // Create span for displaying the name
           const nameSpan = document.createElement("span");
           nameSpan.classList.add("name-span");
           nameSpan.textContent = link.name;
 
-          // Create button for copying the link
           const copyButton = document.createElement("button");
           copyButton.textContent = "📋";
           copyButton.classList.add("btn");
@@ -45,11 +47,9 @@ document.getElementById("extract").addEventListener("click", () => {
             copyButton.textContent = "✔️";
           });
 
-          // Append elements to list item
           listItem.appendChild(nameSpan);
           listItem.appendChild(copyButton);
 
-          // Append list item to list group
           listGroup.appendChild(listItem);
         });
       });
@@ -58,12 +58,12 @@ document.getElementById("extract").addEventListener("click", () => {
 });
 
 /**
- * Get name from magnet links
+ * Parses magnet URI to extract the name.
  *
- * @function parseMagnetURI
- * @param {string} magnetURI -- The magnet URI
+ * @param {string} magnetURI - The magnet URI to parse.
+ * @returns {string} The name extracted from the magnet URI.
  */
-function parseMagnetURI(magnetURI) {
+function parseMagnetName(magnetURI) {
   const prefix = "magnet:?xt=";
   if (!magnetURI.startsWith(prefix)) return null;
 
@@ -74,47 +74,40 @@ function parseMagnetURI(magnetURI) {
 }
 
 /**
- * Get active tab of current window.
+ * Retrieves the current active tab of the window.
  *
- * @function getCurrentTab
+ * @returns {Promise<Array<chrome.tabs.Tab>>} A promise resolving to an array containing the current active tab.
  */
 function getCurrentTab() {
-  return new Promise((res, rej) => {
-    const queryInfo = {
-      active: true,
-      currentWindow: true,
-    };
-
-    chrome.tabs.query(queryInfo, (items) => passNext(items, res, rej));
+  return new Promise((resolve, reject) => {
+    const queryInfo = { active: true, currentWindow: true };
+    chrome.tabs.query(queryInfo, (tabs) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError));
+      } else {
+        resolve(tabs);
+      }
+    });
   });
 }
 
 /**
- * Inject script into tab
+ * Injects a content script into the specified tab.
  *
- * @function injectScript
- * @param {number} tabId -- The ID of tab.
- * @param {string} file -- Pathname of script
+ * @param {number} tabId - The ID of the tab to inject the script into.
+ * @returns {Promise<void>} A promise indicating the completion of script injection.
  */
-function injectScript(tabId, file = "/content-script.js") {
-  return new Promise((res, rej) => {
+function injectScript(tabId) {
+  return new Promise((resolve, reject) => {
     chrome.scripting.executeScript(
-      {
-        target: { tabId: tabId },
-        files: [file],
-      },
-      (item) => passNext(item, res, rej)
+      { target: { tabId: tabId }, files: ["/content-script.js"] },
+      () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError));
+        } else {
+          resolve();
+        }
+      }
     );
   });
-}
-
-/**
- * @function passNext
- * @param {*} result
- * @param {function} fulfill
- * @param {function} reject
- */
-function passNext(result, fulfill, reject) {
-  if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
-  return fulfill(result);
 }

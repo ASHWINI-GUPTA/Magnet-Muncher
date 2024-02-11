@@ -1,36 +1,36 @@
 "use strict";
-chrome.runtime.onMessage.addListener(onMessage);
 
 /**
- * @function onMessage
- * @param {object} message
- * @param {runtime.MessageSender} sender
- *  Representing the sender of the message.
- * @param {function} sendResponse
- *  A function to call, at most once, to send a response to the message.
+ * Listens for messages from the extension and performs actions accordingly.
+ *
+ * @param {object} message - The message received from the extension.
+ * @param {runtime.MessageSender} sender - The sender of the message.
+ * @param {function} sendResponse - A function to send a response to the message.
  */
 function onMessage(message, sender, sendResponse) {
   if (message.action === "extract") {
-    sendResponse(extractLinks());
+    sendResponse(extractMagnetLinks());
   } else {
     throw new Error("Unknown type of message");
   }
 }
 
 /**
- * Extract magnet links.
+ * Extracts magnet links from the current document.
  *
- * @function extractLinks
+ * @returns {Array<string>} An array containing the extracted magnet links, if any.
  */
-function extractLinks() {
-  const links = [];
+function extractMagnetLinks() {
+  const magnetLinks = [];
 
-  for (let index = 0; index < document.links.length; index++) {
-    var href = document.links[index].href;
+  for (const link of document.links) {
+    const href = link.href;
     if (href && href.startsWith("magnet:?xt=")) {
-      links.push(href);
+      magnetLinks.push(href);
     }
   }
 
-  return links.length ? links : null;
+  return magnetLinks.length ? magnetLinks : null;
 }
+
+chrome.runtime.onMessage.addListener(onMessage);
