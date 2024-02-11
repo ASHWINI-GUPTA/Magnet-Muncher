@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Extract Magnet Links</title>
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        width: 400px;
+        height: 200px;
+        padding: 10px;
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        flex-wrap: nowrap;
+        flex-direction: column;
+      }
+
+      .button-container {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .name-span {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container button-container">
+      <button class="btn btn-primary" id="extract" type="button">
+        🔗 Extract Magnet Links
+      </button>
+    </div>
+
+    <hr />
+
+    <!-- List group to display parsed links -->
+    <div class="container mt-3">
+      <div class="list-group" id="parsed-links"></div>
+    </div>
+
+    <script src="popup.js" charset="utf-8"></script>
+  </body>
+</html>
